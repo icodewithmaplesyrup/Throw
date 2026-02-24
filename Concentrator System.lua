@@ -14,7 +14,7 @@
 --  1. Enable HttpService        (Game Settings ? Security)
 --  2. Enable DataStoreService   (Game Settings ? Security)
 --  3. Place a Model called "WeatherConcentrator" in Workspace
---       +- PrimaryPart  (BasePart — the glowing pedestal)
+--       +- PrimaryPart  (BasePart â€” the glowing pedestal)
 --          +- ProximityPrompt  (direct child of PrimaryPart)
 --             If absent, one is created automatically.
 --  4. Paste your Gemini API key into CONFIG.GEMINI_API_KEY.
@@ -22,7 +22,7 @@
 --     ServerScriptService so it is never replicated to clients.
 --  5. RECOMMENDED: Move BRAINROT_INCOME into a shared ModuleScript
 --     (ReplicatedStorage/BrainrotIncomeData) and require it here
---     AND in BrainrotSlotSystem — keeps the two in sync.
+--     AND in BrainrotSlotSystem â€” keeps the two in sync.
 -- ================================================================
 
 local Players           = game:GetService("Players")
@@ -38,7 +38,7 @@ local WeatherSystem = require(ReplicatedStorage:WaitForChild("WeatherSystem"))
 -- ================================================================
 local CONFIG = {
 	-- -- Gemini ---------------------------------------------------
-	GEMINI_API_KEY  = "AIzaSyBGLamtV3td6-LktS2wQG2KzS-HN1UIU10E",
+	GEMINI_API_KEY  = "yours here",
 	GEMINI_MODEL    = "gemini-2.0-flash",
 
 	-- -- Craft cost -----------------------------------------------
@@ -236,7 +236,7 @@ local function calcDiscoveryBonus(depth)
 end
 
 -- ================================================================
---  GEMINI — blend mutation names into a creative label
+--  GEMINI â€” blend mutation names into a creative label
 -- ================================================================
 local GEMINI_URL
 local blendCache = {}
@@ -278,7 +278,7 @@ local function isLazyOutput(output, mutList)
 	local lazy = matchCount > threshold
 	if lazy then
 		warn(string.format(
-			"   [LazyCheck] REJECTED '%s' — %d/%d mutations matched (threshold >%d)",
+			"   [LazyCheck] REJECTED '%s' â€” %d/%d mutations matched (threshold >%d)",
 			output, matchCount, #mutList, threshold
 			))
 	end
@@ -302,7 +302,7 @@ local function callGemini(basePrompt, rejectedAnswer)
 		systemInstruction = {
 			parts = { {
 				text = "You are a creative mutation name generator for a silly Italian meme game. "
-					.. "Output ONLY the invented name — no explanation, no punctuation at the end, nothing else. "
+					.. "Output ONLY the invented name â€” no explanation, no punctuation at the end, nothing else. "
 					.. "Never use the input words or their direct translations in any language."
 			} }
 		},
@@ -371,7 +371,7 @@ local function blendMutationNames(mutList)
 	local key = recipeKey(mutList)
 	if blendCache[key] then return blendCache[key] end
 
-	-- Single mutation — no blending needed
+	-- Single mutation â€” no blending needed
 	if #mutList == 1 then
 		blendCache[key] = mutList[1]
 		return mutList[1]
@@ -384,7 +384,7 @@ local function blendMutationNames(mutList)
 
 Rules:
 - 1 to 4 words. Italian or Latin phonetics are encouraged where natural.
-- Must feel like a brand-new standalone mutation name — evocative, not a description.
+- Must feel like a brand-new standalone mutation name â€” evocative, not a description.
 - You are completely banned from using any input words or their direct translations.
 
 Good fusion examples:
@@ -422,14 +422,14 @@ Good fusion examples:
 				break
 			end
 		else
-			warn("?? Gemini attempt " .. attempt .. " returned nil — check RAW log above")
+			warn("?? Gemini attempt " .. attempt .. " returned nil â€” check RAW log above")
 			task.wait(0.5)
 		end
 	end
 
 	-- Fallback: depth-flavoured Italian phrase that doesn't expose raw mutation names
 	if not result then
-		warn("?? All Gemini attempts exhausted for [" .. listed .. "] — using fallback")
+		warn("?? All Gemini attempts exhausted for [" .. listed .. "] â€” using fallback")
 		local depthLabel = ({
 			[2] = "Duplice",
 			[3] = "Triplice",
@@ -670,7 +670,7 @@ local pedestal = concentratorModel.PrimaryPart
 if not pedestal then
 	pedestal = concentratorModel:FindFirstChildWhichIsA("BasePart", true)
 	if pedestal then
-		warn("?? WeatherConcentrator has no PrimaryPart set — falling back to '"
+		warn("?? WeatherConcentrator has no PrimaryPart set â€” falling back to '"
 			.. pedestal.Name .. "'. Set PrimaryPart in Studio for best results.")
 	else
 		warn("?? WeatherConcentrator has no BasePart at all! System inactive.")
@@ -795,7 +795,7 @@ local function tryConcentrate(player)
 
 	if not moneyValue then
 		ConcentratorResult:FireClient(player, false,
-			"? Money stat not found — contact an admin.", nil)
+			"? Money stat not found â€” contact an admin.", nil)
 		return
 	end
 
@@ -865,7 +865,7 @@ local function tryConcentrate(player)
 		local msg
 		if discoveryBonus then
 			msg = string.format(
-				"?? FIRST DISCOVERY! '%s' — You earned $%s bonus!",
+				"?? FIRST DISCOVERY! '%s' â€” You earned $%s bonus!",
 				blendedLabel, string.format("%d", discoveryBonus)
 			)
 		else
@@ -914,7 +914,7 @@ local function refreshPromptLabel()
 	local weather = WeatherSystem.getCurrentWeather()
 	local data    = WeatherSystem.WEATHER_TYPES[weather]
 	if weather == "Clear" or not (data and data.mutation) then
-		prompt.ObjectText = "Weather Concentrator  (waiting for storm…)"
+		prompt.ObjectText = "Weather Concentrator  (waiting for stormâ€¦)"
 	else
 		prompt.ObjectText = string.format("Weather Concentrator  [%s]", data.mutation)
 	end
@@ -926,7 +926,7 @@ prompt.Triggered:Connect(function(player)
 end)
 
 -- ================================================================
---  REMOTE FUNCTION  — client cost preview
+--  REMOTE FUNCTION  â€” client cost preview
 -- ================================================================
 ConcentratorInfo.OnServerInvoke = function(player)
 	local weather  = WeatherSystem.getCurrentWeather()
@@ -973,4 +973,5 @@ Players.PlayerRemoving:Connect(function(p)
 end)
 
 print("? WeatherConcentratorSystem loaded!")
+
 print("   Concentrator: " .. concentratorModel:GetFullName())
