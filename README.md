@@ -10,5 +10,8 @@ Admin Menus<br>
 Flying Scripts (only used for admins in our game)<br>
 Automatic Gui organizer<br>
 and...<br>
-✨Full export script that reduces 2.7gb of .lua to a neatly formatted, indexed, dictionaried .txt file that takes up 712 kb, and 85 when g-zipped!✨<br>
+✨Full export script that reduces 2.7gb of .lua to a neatly formatted & indexed .txt file that takes up 712 kb, and 85 when g-zipped!✨<br>
 note export only works on windows as it uses powershell.<br>
+<br>
+<br>
+Wiki will be updated after the first few updates with info on how to implement every script here.
