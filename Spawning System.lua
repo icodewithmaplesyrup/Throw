@@ -11,7 +11,7 @@ local WeatherSystem = require(game.ReplicatedStorage:WaitForChild("WeatherSystem
 repeat task.wait(0.1) until pcall(function() 
 	PhysicsService:GetCollisionGroupId("NPCs") 
 end)
-print("? Collision groups detected, spawning system ready")
+print("✅ Collision groups detected, spawning system ready")
 
 -- Rebirth requirements for each rarity
 local RARITY_REQUIREMENTS = {
@@ -88,11 +88,11 @@ local MUTATION_COLORS = {
 }
 
 local MUTATION_RATES = {
-	-- Permanent mutations � always in the pool
+	-- Permanent mutations — always in the pool
 	["Rainbow"]  = 5,
 	["Diamond"]  = 102,
 	["Gold"]     = 250,
-	-- Limited mutations � 0 base rate; boosted by weather system
+	-- Limited mutations — 0 base rate; boosted by weather system
 	["Bloodrot"]    = 0,
 	["Candy"]       = 0,
 	["Lava"]        = 0,
@@ -387,19 +387,23 @@ local function addNameTag(brainrot)
 	end
 
 	if isLocked then
-		createLabel("?? LOCKED", 0, Enum.Font.FredokaOne, Color3.fromRGB(255, 50, 50))
+		createLabel("🔒 LOCKED", 0, Enum.Font.FredokaOne, Color3.fromRGB(255, 50, 50))
 	end
 
 	local maxDuration = DESPAWN_TIME[rarity] or 60
-	local tLabel = createLabel("? " .. maxDuration .. "s", 1, Enum.Font.FredokaOne, Color3.new(1,1,1), Color3.new(0,0,0), 0)
+	local tLabel = createLabel("⏳ " .. maxDuration .. "s", 1, Enum.Font.FredokaOne, Color3.new(1,1,1), Color3.new(0,0,0), 0)
 
 	if mutation then
-		local mutText = "? " .. mutation .. " ?"
+		local mutText = "⭐ " .. mutation .. " ⭐"
 		local mutColor = Color3.new(1,1,1)
 		local mc = MUTATION_COLORS[mutation]
 		if mc and mc ~= "Rainbow" then mutColor = mc end
 
 		local mLabel = createLabel(mutText, 2, Enum.Font.SourceSansBold, mutColor, Color3.new(0,0,0), 0)
+
+		-- 👇 ADD THIS LINE SO THE WEATHER SYSTEM CAN FIND IT! 👇
+		mLabel.Name = "MutationLabel"
+
 		if mutation and MUTATION_COLORS[mutation] == "Rainbow" then
 			animateRainbow(mLabel)
 		end
@@ -448,7 +452,7 @@ local function addNameTag(brainrot)
 			if timeLeft < 0 then timeLeft = 0 end
 
 			if timeLeft ~= lastTimeLeft then
-				tLabel.Text = "? " .. timeLeft .. "s"
+				tLabel.Text = "⏳ " .. timeLeft .. "s"
 				lastTimeLeft = timeLeft
 
 				if timeLeft <= 10 then
@@ -467,7 +471,7 @@ end
 local function enableCollisionDetection(brainrot)
 	local rootPart = brainrot:FindFirstChild("RootPart") or brainrot.PrimaryPart or brainrot:FindFirstChildWhichIsA("BasePart")
 	if not rootPart then
-		warn("?? No RootPart found for " .. brainrot.Name)
+		warn("⚠️ No RootPart found for " .. brainrot.Name)
 		return
 	end
 
@@ -572,7 +576,7 @@ end
 
 local function spawnbrainrot()
 	if #activeBrainrots >= MAX_BRAINROTS then
-		print("?? Brainrot cap reached (" .. MAX_BRAINROTS .. "), skipping spawn")
+		print("⚠️ Brainrot cap reached (" .. MAX_BRAINROTS .. "), skipping spawn")
 		return
 	end
 
@@ -635,15 +639,15 @@ local function spawnbrainrot()
 	local speed = RARITY_SPEEDS[rarity]
 
 	if not speed then
-		warn("?? Unknown rarity '" .. tostring(rarity) .. "' for " .. brainrot.Name .. " - using default speed of 24")
+		warn("⚠️ Unknown rarity '" .. tostring(rarity) .. "' for " .. brainrot.Name .. " - using default speed of 24")
 		speed = 24
 	end
 
-	print("?? Speed for " .. brainrot.Name .. " (Rarity: '" .. rarity .. "'): " .. speed)
+	print("🐌 Speed for " .. brainrot.Name .. " (Rarity: '" .. rarity .. "'): " .. speed)
 
 	makeBrainrotWander(brainrot, speed)
 	scheduleDespawn(brainrot)
-	print("?? Spawned: " .. brainrot.Name .. " (" .. basicrarity .. ")" .. (requirement > 0 and " ??" or ""))
+	print("🎯 Spawned: " .. brainrot.Name .. " (" .. basicrarity .. ")" .. (requirement > 0 and " 🔒" or ""))
 end
 
 event.OnServerEvent:Connect(spawnbrainrot)
@@ -694,7 +698,7 @@ end)
 
 if AUTO_SPAWN_ENABLED then
 	task.spawn(function()
-		print("?? Auto-spawn system started!")
+		print("🔄 Auto-spawn system started!")
 		while true do
 			task.wait(AUTO_SPAWN_INTERVAL)
 			spawnbrainrot()
@@ -702,4 +706,4 @@ if AUTO_SPAWN_ENABLED then
 	end)
 end
 
-print("? Spawning System loaded with auto-spawn, rebirth locks, and collision groups!")
+print("✅ Spawning System loaded with auto-spawn, rebirth locks, and collision groups!")
