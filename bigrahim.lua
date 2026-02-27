@@ -1,5 +1,5 @@
 -- ServerScriptService/BrainrotSlotSystem
-print("?? BrainrotSlotSystem starting...")
+print("🚀 BrainrotSlotSystem starting...")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -16,7 +16,7 @@ local economyevent = game.ReplicatedStorage.RemoteEvents.EconomyEvent
 -- ==========================================================
 local BASES_FOLDER_NAME = "BrainrotBases"
 local TweenService = game:GetService("TweenService")
--- Rarity colours � same as spawning system
+-- Rarity colours — same as spawning system
 local RARITY_COLORS = {
 	["Common"]       = Color3.fromRGB(0, 255, 0),
 	["Rare"]         = Color3.fromRGB(0, 100, 255),
@@ -55,8 +55,31 @@ local MUTATION_MULTIPLIERS = {
 	["Yin-Yang"]    = 7.5,
 	["Radioactive"] = 8.5,
 }
+-- ================================================================
+--  INVENTORY CAPACITY HELPER
+-- ================================================================
+local function countPlayerBrainrots(player)
+	local count = 0
+	local backpack = player:FindFirstChild("Backpack")
+	if backpack then
+		for _, tool in pairs(backpack:GetChildren()) do
+			if tool:IsA("Tool") and tool:GetAttribute("Rarity") then
+				count = count + 1
+			end
+		end
+	end
 
--- Income per second keyed by exact tool name (codev's table � most complete)
+	-- Check equipped tool
+	if player.Character then
+		local equippedTool = player.Character:FindFirstChildOfClass("Tool")
+		if equippedTool and equippedTool:GetAttribute("Rarity") then
+			count = count + 1
+		end
+	end
+
+	return count
+end
+-- Income per second keyed by exact tool name (codev's table — most complete)
 local BRAINROT_INCOME = {
 	-- COMMON
 	["Noobini Pizzanini"] = 1,
@@ -264,10 +287,10 @@ local BRAINROT_INCOME = {
 -- ==========================================================
 local BASES_FOLDER = Workspace:WaitForChild(BASES_FOLDER_NAME, 5)
 if not BASES_FOLDER then
-	warn("? BrainrotBases folder NOT FOUND in Workspace!")
+	warn("❌ BrainrotBases folder NOT FOUND in Workspace!")
 	return
 end
-print("? Found BrainrotBases folder")
+print("✓ Found BrainrotBases folder")
 
 -- Track assigned bases
 local assignedBases = {} -- [playerName] = baseModel
@@ -283,19 +306,19 @@ for _, base in pairs(BASES_FOLDER:GetChildren()) do
 	end
 end
 
-print("?? Found " .. #availableBases .. " available bases for assignment")
+print("📊 Found " .. #availableBases .. " available bases for assignment")
 
 -- Function to assign a base to a player
 local function assignBaseToPlayer(player)
 	-- Check if player already has a base
 	if assignedBases[player.Name] then
-		print("? " .. player.Name .. " already has base: " .. assignedBases[player.Name].Name)
+		print("✓ " .. player.Name .. " already has base: " .. assignedBases[player.Name].Name)
 		return assignedBases[player.Name]
 	end
 
 	-- Find an available base
 	if #availableBases == 0 then
-		warn("?? No available bases to assign to " .. player.Name)
+		warn("⚠️ No available bases to assign to " .. player.Name)
 		return nil
 	end
 
@@ -319,7 +342,7 @@ local function assignBaseToPlayer(player)
 			-- Set this as the player's respawn location
 			player.RespawnLocation = spawnLocation
 
-			print("? Assigned " .. base.Name .. " to " .. player.Name .. " with spawn point")
+			print("✅ Assigned " .. base.Name .. " to " .. player.Name .. " with spawn point")
 
 			-- Wait for character to load, then teleport
 			if player.Character then
@@ -337,7 +360,7 @@ local function assignBaseToPlayer(player)
 				end)
 			end
 		else
-			warn("?? No SpawnLocation found in " .. base.Name)
+			warn("⚠️ No SpawnLocation found in " .. base.Name)
 		end
 
 		return base
@@ -362,19 +385,19 @@ local function unassignBase(player)
 		table.insert(availableBases, base)
 		assignedBases[player.Name] = nil
 
-		print("?? Unassigned " .. base.Name .. " from " .. player.Name)
+		print("🔓 Unassigned " .. base.Name .. " from " .. player.Name)
 	end
 end
 
 -- Auto-assign bases when players join
 Players.PlayerAdded:Connect(function(player)
-	print("?? Player joined: " .. player.Name)
+	print("👤 Player joined: " .. player.Name)
 	assignBaseToPlayer(player)
 end)
 
 -- Clean up when players leave
 Players.PlayerRemoving:Connect(function(player)
-	print("?? Player leaving: " .. player.Name)
+	print("👋 Player leaving: " .. player.Name)
 	unassignBase(player)
 end)
 
@@ -406,8 +429,8 @@ end
 
 -- ==========================================================
 -- SHARED STATE
--- slotData[slot]      � income tracking per occupied slot
--- incomeLabels[slot]  � direct reference to the TextLabel on that slot's
+-- slotData[slot]      – income tracking per occupied slot
+-- incomeLabels[slot]  – direct reference to the TextLabel on that slot's
 --                        CollectTrigger billboard (created during the scan,
 --                        before any brainrot is placed, so we never have to
 --                        walk the instance tree again)
@@ -619,7 +642,7 @@ local function addRarityDisplay(brainrotModel, targetAdornee)
 	local rarityLabel = Instance.new("TextLabel")
 	rarityLabel.Size = UDim2.new(1, 0, 1, 0)
 	rarityLabel.BackgroundTransparency = 1
-	rarityLabel.Text = "? " .. rarity .. " ?"
+	rarityLabel.Text = "⭐ " .. rarity .. " ⭐"
 	rarityLabel.TextScaled = true
 	rarityLabel.Font = Enum.Font.FredokaOne
 	rarityLabel.TextStrokeTransparency = 0
@@ -674,7 +697,7 @@ local function addSlotNameTag(brainrotModel, incomeRate, mutation, targetAdornee
 		mutationLabel.Size = UDim2.new(1, 0, 0.33, 0)
 		mutationLabel.Position = UDim2.new(0, 0, 0.33, 0)
 		mutationLabel.BackgroundTransparency = 1
-		mutationLabel.Text = "? " .. mutation .. " ?"
+		mutationLabel.Text = "⭐ " .. mutation .. " ⭐"
 		mutationLabel.TextSize = 14
 		mutationLabel.Font = Enum.Font.SourceSansBold
 		mutationLabel.TextStrokeTransparency = 0.5
@@ -752,7 +775,7 @@ local function getEquippedBrainrot(player)
 	return nil
 end
 
--- PLACE  �  moves the tool into the slot (no clone, no destroy)
+-- PLACE  —  moves the tool into the slot (no clone, no destroy)
 -- Helper to get Rebirths (Place this above the main function if you haven't already)
 local function getRebirthMultiplier(player)
 	local leaderstats = player:FindFirstChild("leaderstats")
@@ -855,7 +878,26 @@ local function placeBrainrotOnSlot(player, slot)
 		-- ==========================================
 		--               PICKUP LOGIC
 		-- ==========================================
+		-- >>> SWAP CHECK (SLOT SYSTEM) <<<
+		local currentCount = 0
+		local eq = player.Character and player.Character:FindFirstChildOfClass("Tool")
+		if player:FindFirstChild("Backpack") then
+			for _, t in pairs(player.Backpack:GetChildren()) do
+				if t:IsA("Tool") and t:GetAttribute("Rarity") then currentCount = currentCount + 1 end
+			end
+		end
+		if eq and eq:GetAttribute("Rarity") then currentCount = currentCount + 1 end
 
+		local maxCap = player:GetAttribute("BrainrotCapacity") or 1
+		local isSwapping = false
+		if currentCount >= maxCap then
+			if eq and ReplicatedStorage:FindFirstChild("Brainrot pack1") and ReplicatedStorage["Brainrot pack1"]:FindFirstChild(eq.Name) then
+				isSwapping = true -- Allow the pickup to proceed so we can swap
+			else
+				return false, "🎒 Inventory Full! Equip a Brainrot to swap."
+			end
+		end
+		-- >>> END SWAP CHECK <<<
 		-- A. Auto-Collect Income (Don't lose money on pickup!)
 		local timeElapsed = tick() - currentSlotData.lastUpdate
 		local earned = math.ceil(timeElapsed * currentSlotData.incomeRate)
@@ -893,8 +935,13 @@ local function placeBrainrotOnSlot(player, slot)
 		end
 
 		-- D. Give to Player
-		brainrot.Parent = player.Character 
-
+		-- D. Give to Player (Safely route to Backpack to prevent physics freeze)
+		local backpack = player:FindFirstChild("Backpack")
+		if backpack then
+			brainrot.Parent = backpack
+		else
+			brainrot.Parent = player.Character
+		end
 		-- E. Clean up Data
 		local tag = brainrot:FindFirstChild("NameTag")
 		if tag then tag:Destroy() end
@@ -905,6 +952,18 @@ local function placeBrainrotOnSlot(player, slot)
 		slot:SetAttribute("BrainrotName", nil)
 		slot:SetAttribute("IncomeRate", nil)
 		slot:SetAttribute("Mutation", nil)
+	-- >>> FIX: Force find the prompt to update text to "PLACE" <<<
+		-- >>> PROMPT FIX: Slot is now EMPTY, so next action is PLACE <<<
+		local prompt = slot:FindFirstChild("PlacePrompt", true)
+		if prompt and prompt:IsA("ProximityPrompt") then 
+			prompt.Enabled = false -- Forces the player's screen to refresh
+			prompt.ActionText = "Place Brainrot" 
+			prompt.Enabled = true
+		end
+		if isSwapping then
+			-- Immediately trigger the Place logic for the newly equipped tool!
+			return placeBrainrotOnSlot(player, slot)
+		end
 
 		return true, "Picked up " .. brainrot.Name .. "!"
 
@@ -921,7 +980,7 @@ local function placeBrainrotOnSlot(player, slot)
 		-- A. Calculate Base Rate
 		local baseIncome = BRAINROT_INCOME[brainrot.Name]
 		if not baseIncome then
-			warn("?? '" .. brainrot.Name .. "' not in BRAINROT_INCOME. Defaulting to 1.")
+			warn("⚠️ '" .. brainrot.Name .. "' not in BRAINROT_INCOME. Defaulting to 1.")
 			baseIncome = 1
 		end
 
@@ -933,7 +992,7 @@ local function placeBrainrotOnSlot(player, slot)
 		local mutationMult = brainrot:GetAttribute("MutationMult") or 1
 		if mutation then
 			mutationMult = MUTATION_MULTIPLIERS[mutation] or 1
-			print("? READING MUTATION: " .. brainrot.Name .. " has " .. mutation .. "! (" .. mutationMult .. "x multiplier)")
+			print("✨ READING MUTATION: " .. brainrot.Name .. " has " .. mutation .. "! (" .. mutationMult .. "x multiplier)")
 		end
 
 		-- D. Calculate display income rate (mutations will be applied during collection)
@@ -987,7 +1046,16 @@ addSlotNameTag(brainrot, finalIncomeRate, mutation, displayPart)
 		end
 
 		local mutationText = mutation and (" [" .. mutation .. " " .. mutationMult .. "x]") or ""
-		print("? " .. player.Name .. " placed " .. brainrotName .. mutationText .. " (Rebirth: " .. rebirthMult .. "x, Final: $" .. finalIncomeRate .. "/sec)")
+		print("✅ " .. player.Name .. " placed " .. brainrotName .. mutationText .. " (Rebirth: " .. rebirthMult .. "x, Final: $" .. finalIncomeRate .. "/sec)")
+		-- >>> PROMPT FIX: Slot is now FULL, so next action is PICK UP <<<
+		local prompt = slot:FindFirstChild("PlacePrompt", true)
+		if prompt and prompt:IsA("ProximityPrompt") then 
+			prompt.Enabled = false -- Forces the player's screen to refresh
+			prompt.ActionText = "Pick up Brainrot" 
+			prompt.Enabled = true
+		end
+
+		local mutationText = mutation and (" [" .. mutation .. " " .. mutationMult .. "x]") or ""
 		return true, "Placed " .. brainrotName .. "! (+" .. finalIncomeRate .. "/sec)" .. (mutation and " [" .. mutation .. "!]" or "")
 	end
 end
@@ -1055,7 +1123,7 @@ local function collectIncome(player, slot)
 		end
 	end
 
-	print("?? " .. player.Name .. " collected $" .. totalIncome .. " from " .. slot.Name)
+	print("💰 " .. player.Name .. " collected $" .. totalIncome .. " from " .. slot.Name)
 	return true, "Collected $" .. totalIncome .. "!", totalIncome
 end
 
@@ -1076,79 +1144,74 @@ collectIncomeEvent.OnServerEvent:Connect(function(player, slot)
 end)
 
 -- ==========================================================
--- SCAN  �  wire up every CollectTrigger & ProximityPrompt once at startup
+-- SCAN & DYNAMIC BINDING
 -- ==========================================================
-print("?? Scanning BrainrotBases...")
-local basesFound, slotsFound = 0, 0
+print("?? Scanning BrainrotBases and listening for new floors...")
 
+local function setupSlot(slot)
+	if not (slot:IsA("Model") and slot.Name:match("Slot")) then return end
+
+	-- 1. CollectTrigger
+	local collectTrigger = slot:FindFirstChild("CollectTrigger")
+	if collectTrigger then
+		local bb = collectTrigger:FindFirstChild("IncomeBillboard")
+		local frame = bb and bb:FindFirstChild("Frame")
+		local label = frame and frame:FindFirstChild("IncomeText")
+
+		if label then
+			incomeLabels[slot] = label
+			label.Text = "$0"
+			frame.Visible = false
+		end
+
+		collectTrigger.Touched:Connect(function(hit)
+			local player = Players:GetPlayerFromCharacter(hit.Parent)
+			if not player then return end
+			local lastCollect = player:GetAttribute("LastCollectTime") or 0
+			if tick() - lastCollect <= 0.5 then return end
+			player:SetAttribute("LastCollectTime", tick())
+
+			local ok, msg, amount = collectIncome(player, slot)
+			if ok then collectIncomeEvent:FireClient(player, ok, msg, amount) end
+		end)
+	end
+
+	-- 2. ProximityPrompt
+	local placePrompt = slot:FindFirstChild("PlacePrompt")
+	if not placePrompt then
+		for _, part in pairs(slot:GetChildren()) do
+			local found = part:FindFirstChild("PlacePrompt")
+			if found then placePrompt = found; break end
+		end
+	end
+
+	if placePrompt and placePrompt:IsA("ProximityPrompt") then
+		placePrompt.Triggered:Connect(function(player)
+			local ok, msg = placeBrainrotOnSlot(player, slot)
+			placeBrainrotEvent:FireClient(player, ok, msg)
+		end)
+	end
+end
+
+-- Scan existing bases on startup
 for _, base in pairs(BASES_FOLDER:GetChildren()) do
-	if not base:IsA("Model") then continue end
-	basesFound += 1
-
-	local ownerValue = base:FindFirstChild("Owner")
-	print("?? Base:", base.Name, "| Owner:", ownerValue and ownerValue.Value or "?? NONE")
-
-	for _, child in pairs(base:GetChildren()) do
-		if not (child:IsA("Model") and child.Name:match("Slot")) then continue end
-		slotsFound += 1
-		local slot = child
-		print("   ?? Slot:", slot.Name)
-
-		-- 1. CollectTrigger  �  create billboard + touch handler
-		local collectTrigger = slot:FindFirstChild("CollectTrigger")
-		if collectTrigger then
-
-			-- NEW LOGIC: Find existing GUI instead of creating one
-			-- NEW LOGIC: Find existing GUI instead of creating one
-			local bb = collectTrigger:FindFirstChild("IncomeBillboard")
-			local frame = bb and bb:FindFirstChild("Frame")
-			local label = frame and frame:FindFirstChild("IncomeText")
-
-			if label then
-				incomeLabels[slot] = label
-				label.Text = "$0" -- Reset on load
-				frame.Visible = false -- Hide it initially since there's no income yet
-			end
-
-			collectTrigger.Touched:Connect(function(hit)
-				local player = Players:GetPlayerFromCharacter(hit.Parent)
-				if not player then return end
-				local lastCollect = player:GetAttribute("LastCollectTime") or 0
-				if tick() - lastCollect <= 0.5 then return end
-				player:SetAttribute("LastCollectTime", tick())
-
-				local ok, msg, amount = collectIncome(player, slot)
-				if ok then collectIncomeEvent:FireClient(player, ok, msg, amount) end
-			end)
-			print("      ? CollectTrigger connected")
-		else
-			print("      ? No CollectTrigger")
-		end
-		-- 2. ProximityPrompt  �  check slot directly, then one level deeper
-		local placePrompt = slot:FindFirstChild("PlacePrompt")
-		if not placePrompt then
-			for _, part in pairs(slot:GetChildren()) do
-				local found = part:FindFirstChild("PlacePrompt")
-				if found then placePrompt = found; break end
-			end
-		end
-
-		if placePrompt and placePrompt:IsA("ProximityPrompt") then
-			placePrompt.Triggered:Connect(function(player)
-				local ok, msg = placeBrainrotOnSlot(player, slot)
-				placeBrainrotEvent:FireClient(player, ok, msg)
-			end)
-			print("      ? PlacePrompt connected")
-		else
-			print("      ?? No PlacePrompt found")
+	if base:IsA("Model") then
+		for _, child in pairs(base:GetChildren()) do
+			setupSlot(child)
 		end
 	end
 end
 
-print("?? Scan done �", basesFound, "bases,", slotsFound, "slots")
-
+-- Listen for new floors being built so their slots work!
+BASES_FOLDER.DescendantAdded:Connect(function(descendant)
+	if descendant:IsA("Model") and descendant.Name:match("Slot") then
+		-- A tiny yield ensures all children (like CollectTrigger) are fully loaded in the clone
+		task.wait(0.1) 
+		setupSlot(descendant)
+	end
+end)
 -- ==========================================================
--- UPDATE LOOP  �  accumulate income & refresh billboards every second
+-- UPDATE LOOP  —  accumulate income & refresh billboards every second
 -- ==========================================================
 task.spawn(function()
     while true do
@@ -1267,11 +1330,11 @@ task.spawn(function()
     end
 end)
 
-print("? BrainrotSlotSystem fully loaded with mutation support!")
+print("✅ BrainrotSlotSystem fully loaded with mutation support!")
 
 
 -- ==========================================================
--- UPDATE LOOP � accumulate income & refresh billboards every second
+-- UPDATE LOOP — accumulate income & refresh billboards every second
 -- ==========================================================
 task.spawn(function()
 	while true do
