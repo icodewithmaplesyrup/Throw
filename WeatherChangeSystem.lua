@@ -55,218 +55,239 @@ local function getNextEvent()
 end
 
 -- ============================================================
+--  HELPER: Clean up mutations when weather changes
+-- ============================================================
+-- ============================================================
+--  HELPER: Clean up mutations when weather changes
+-- ============================================================
+
+
+-- ============================================================
 --  HELPER: set weather and broadcast
 -- ============================================================
+-- ============================================================
+--  MUTATION STACKING HELPERS
+-- ============================================================
+local PERM_MUTATIONS = { ["Gold"]=true, ["Diamond"]=true, ["Rainbow"]=true }
+local LIMITED_MUTATIONS = { ["Bloodrot"]=true, ["Candy"]=true, ["Lava"]=true, ["Galaxy"]=true, ["Yin-Yang"]=true, ["Radioactive"]=true, ["Wet"]=true }
+
+local function getParsedMutations(mutationString)
+	local perm, limited
+	if not mutationString then return nil, nil end
+	for p in pairs(PERM_MUTATIONS) do
+		if string.find(mutationString, p) then perm = p end
+	end
+	for l in pairs(LIMITED_MUTATIONS) do
+		if string.find(mutationString, l) then limited = l end
+	end
+	return perm, limited
+end
+
+local function calculateCombinedMultiplier(perm, limited)
+	local bonus = 0
+	if perm then bonus += (MUTATION_MULTIPLIERS[perm] or 0) end
+	if limited then bonus += (MUTATION_MULTIPLIERS[limited] or 0) end
+	return 1 + bonus
+end
+
+local function updateBrainrotMutationAndVisuals(luckyRot, perm, limited, visualData)
+	-- Combine the names (e.g. "Gold, Radioactive")
+	local newMutString
+	if perm and limited then newMutString = perm .. ", " .. limited
+	elseif perm then newMutString = perm
+	elseif limited then newMutString = limited end
+
+	luckyRot:SetAttribute("Mutation", newMutString)
+	luckyRot:SetAttribute("MutationMult", calculateCombinedMultiplier(perm, limited))
+
+	-- 1. UPDATE OVERHEAD LABEL
+	local statsGUI = luckyRot:FindFirstChild("StatsGUI")
+	if statsGUI then
+		local lbl = statsGUI:FindFirstChild("MutationLabel")
+		if not lbl then
+			lbl = Instance.new("TextLabel")
+			lbl.Name = "MutationLabel"
+			lbl.Size = UDim2.new(1, 0, 0.2, 0)
+			lbl.BackgroundTransparency = 1
+			lbl.Font = Enum.Font.SourceSansBold
+			lbl.TextScaled = true
+			lbl.TextStrokeColor3 = Color3.new(0, 0, 0)
+			lbl.TextStrokeTransparency = 0
+			lbl.LayoutOrder = 2
+
+			local constraint = Instance.new("UITextSizeConstraint")
+			constraint.MaxTextSize = 35
+			constraint.MinTextSize = 2
+			constraint.Parent = lbl
+
+			lbl.Parent = statsGUI
+		end
+
+		lbl.Text = "⭐ " .. newMutString .. " ⭐"
+
+		-- Color priority: Limited overwrites Perm on the label
+		local mc = nil
+		if limited and MUTATION_COLORS[limited] then mc = MUTATION_COLORS[limited]
+		elseif perm and MUTATION_COLORS[perm] then mc = MUTATION_COLORS[perm] end
+
+		if mc and typeof(mc) == "Color3" then lbl.TextColor3 = mc
+		else lbl.TextColor3 = Color3.new(1,1,1) end
+	end
+
+	-- 2. APPLY VISUALS (Only applies Weather visual overrides)
+	if visualData then
+		for _, d in pairs(luckyRot:GetDescendants()) do
+			if d:IsA("BasePart") or d:IsA("MeshPart") then
+				local sa = d:FindFirstChildOfClass("SurfaceAppearance")
+				if sa then sa:Destroy() end
+				if visualData.material then d.Material = visualData.material end
+				if visualData.reflectance then d.Reflectance = visualData.reflectance end
+				if visualData.color and visualData.animated == false then d.Color = visualData.color end
+			elseif d:IsA("SpecialMesh") then
+				d.TextureId = ""
+			end
+		end
+
+		-- Check if the specific limited mutation is still active before continuing the loop
+		if visualData.animated == "galaxy" then
+			task.spawn(function()
+				local parts = {}
+				for _, d in pairs(luckyRot:GetDescendants()) do
+					if d:IsA("BasePart") then table.insert(parts, d) end
+				end
+				local t = 0
+				while luckyRot and luckyRot.Parent and string.find(luckyRot:GetAttribute("Mutation") or "", limited) do
+					t += 0.02
+					local brightness = 0.5 + 0.5 * math.sin(t)
+					local col = Color3.fromRGB(math.floor(75 + 63 * brightness), 0, math.floor(130 + 100 * brightness))
+					for _, p in pairs(parts) do if p and p.Parent then p.Color = col end end
+					task.wait(0.05)
+				end
+			end)
+		elseif visualData.animated == "yinyang" then
+			task.spawn(function()
+				local parts = {}
+				for _, d in pairs(luckyRot:GetDescendants()) do
+					if d:IsA("BasePart") then table.insert(parts, d) end
+				end
+				local flip = false
+				while luckyRot and luckyRot.Parent and string.find(luckyRot:GetAttribute("Mutation") or "", limited) do
+					flip = not flip
+					local col = flip and Color3.new(1, 1, 1) or Color3.new(0, 0, 0)
+					for _, p in pairs(parts) do if p and p.Parent then p.Color = col end end
+					task.wait(0.5)
+				end
+			end)
+		elseif visualData.animated == "radioactive" then
+			task.spawn(function()
+				local parts = {}
+				for _, d in pairs(luckyRot:GetDescendants()) do
+					if d:IsA("BasePart") then table.insert(parts, d) end
+				end
+				local t = 0
+				while luckyRot and luckyRot.Parent and string.find(luckyRot:GetAttribute("Mutation") or "", limited) do
+					t += 0.08
+					local brightness = 0.5 + 0.5 * math.sin(t)
+					local g = math.floor(150 + 105 * brightness)
+					local col = Color3.fromRGB(0, g, 0)
+					for _, p in pairs(parts) do if p and p.Parent then p.Color = col end end
+					task.wait(0.05)
+				end
+			end)
+		end
+	end
+end
+
+-- ============================================================
+--  MAIN WEATHER CHANGE FUNCTION
+-- ============================================================
 local function setWeather(weatherName, duration)
-	WeatherSystem._currentWeather = weatherName
-	WeatherSystem._weatherEndTime = os.time() + duration
-
 	local data = WeatherSystem.WEATHER_TYPES[weatherName]
-	print(string.format("??? Weather changed ? %s (lasts %ds)", data.displayName, duration))
+	local newLimitedMutation = data and data.mutation
+	local visualData = nil
 
-	-- Fire to all connected clients (General UI update)
-	weatherChangedEvent:FireAllClients(
-		weatherName,
-		data.displayName,
-		data.color,
-		data.description,
-		duration
-	)
+	-- Safely get visual data (Checking both possible locations)
+	if newLimitedMutation then
+		if WeatherSystem.LIMITED_VISUALS and WeatherSystem.LIMITED_VISUALS[newLimitedMutation] then
+			visualData = WeatherSystem.LIMITED_VISUALS[newLimitedMutation]
+		elseif data.visualData then
+			visualData = data.visualData
+		end
+	end
 
-	-- ==========================================
-	-- [RESTORED] Trigger the physical rain falling!
-	-- ==========================================
+	WeatherSystem._currentWeather = weatherName
+	WeatherSystem._weatherEndTime = tick() + duration
+
+	print(string.format("🌦️ Weather changed → %s (lasts %ds)", data.displayName, duration))
+	weatherChangedEvent:FireAllClients(weatherName, data.displayName, data.color, data.description, duration)
+
 	if weatherName == "Rain" then
-		-- We now use the rainEvent defined at the very top of the script!
 		rainEvent:FireAllClients(false)
 	else
 		rainEvent:FireAllClients(true)
 	end
 
-	-- [NEW] Random Mutation Loop over time
-	if weatherName ~= "Clear" and data.mutation then
-		task.spawn(function()
-			local endTime = os.time() + duration
-			local visualData = WeatherSystem.LIMITED_VISUALS[data.mutation]
-			local announceRemote = Remotes:FindFirstChild("MutationAnnounced")
+	-- ==========================================
+	-- 1. SWAP EXISTING MUTATIONS ON WEATHER CHANGE
+	-- ==========================================
+	if newLimitedMutation then
+		for _, obj in ipairs(workspace:GetDescendants()) do
+			if obj:IsA("Model") and obj:GetAttribute("Rarity") then
+				local currentMut = obj:GetAttribute("Mutation")
+				local perm, limited = getParsedMutations(currentMut)
 
-			-- Keep looping as long as the weather event is active
-			while os.time() < endTime do
-				-- Wait a random amount of time (e.g., every 1.5 to 3 seconds)
+				-- If it has an OLD limited mutation, REPLACE it with the NEW one immediately
+				if limited and limited ~= newLimitedMutation then
+					print("🔄 Swapped " .. limited .. " to " .. newLimitedMutation .. " on " .. obj.Name)
+					updateBrainrotMutationAndVisuals(obj, perm, newLimitedMutation, visualData)
+				end
+			end
+		end
+	end
+
+	-- ==========================================
+	-- 2. RANDOM MUTATION LOOP
+	-- ==========================================
+	if weatherName ~= "Clear" and newLimitedMutation then
+		task.spawn(function()
+			local endTime = tick() + duration
+
+			while tick() < endTime do
 				task.wait(math.random(15, 30) / 10) 
 
-				if os.time() >= endTime then break end
+				if tick() >= endTime or WeatherSystem._currentWeather ~= weatherName then 
+					break 
+				end
 
-				-- Find all brainrots currently in the workspace
 				local availableBrainrots = {}
 				for _, obj in ipairs(workspace:GetDescendants()) do
-					-- Must be a model, must have a Rarity, and must NOT already have a mutation
-					if obj:IsA("Model") and obj:GetAttribute("Rarity") ~= nil and not obj:GetAttribute("Mutation") then
-						table.insert(availableBrainrots, obj)
+					if obj:IsA("Model") and obj:GetAttribute("Rarity") then
+						local currentMut = obj:GetAttribute("Mutation")
+						local perm, limited = getParsedMutations(currentMut)
+
+						-- Only mutate it if it DOES NOT already have a limited weather mutation
+						if not limited then
+							table.insert(availableBrainrots, obj)
+						end
 					end
 				end
 
 				if #availableBrainrots > 0 then
-					-- Pick a random lucky (or unlucky) brainrot!
 					local luckyRot = availableBrainrots[math.random(1, #availableBrainrots)]
+					local currentMut = luckyRot:GetAttribute("Mutation")
+					local perm, _ = getParsedMutations(currentMut)
 
-					-- 1. Assign the mutation attribute so it gets the multiplier
-					luckyRot:SetAttribute("Mutation", data.mutation)
-					luckyRot:SetAttribute("MutationMult", MUTATION_MULTIPLIERS[data.mutation] or 1)
+					-- Combine the new limited mutation with the existing perm mutation (if any)
+					updateBrainrotMutationAndVisuals(luckyRot, perm, newLimitedMutation, visualData)
 
-					-- 2. APPLY VISUALS dynamically
-					if visualData then
-						-- Strip SurfaceAppearances first
-						for _, d in pairs(luckyRot:GetDescendants()) do
-							if d:IsA("BasePart") or d:IsA("MeshPart") then
-								local sa = d:FindFirstChildOfClass("SurfaceAppearance")
-								if sa then sa:Destroy() end
-								if visualData.material then
-									d.Material = visualData.material
-								end
-								if visualData.reflectance then
-									d.Reflectance = visualData.reflectance
-								end
-								if visualData.color and visualData.animated == false then
-									d.Color = visualData.color
-								end
-							elseif d:IsA("SpecialMesh") then
-								d.TextureId = ""
-							end
-						end
-					end
-
-					-- Apply animation if needed
-					if visualData.animated == "galaxy" then
-						-- Galaxy animation
-						task.spawn(function()
-							local parts = {}
-							for _, d in pairs(luckyRot:GetDescendants()) do
-								if d:IsA("BasePart") then table.insert(parts, d) end
-							end
-							local t = 0
-							while luckyRot and luckyRot.Parent do
-								t += 0.02
-								local brightness = 0.5 + 0.5 * math.sin(t)
-								local col = Color3.fromRGB(
-									math.floor(75  + 63  * brightness),
-									0,
-									math.floor(130 + 100 * brightness)
-								)
-								for _, p in pairs(parts) do
-									if p and p.Parent then p.Color = col end
-								end
-								task.wait(0.05)
-							end
-						end)
-					elseif visualData.animated == "yinyang" then
-						-- Yin-Yang animation
-						task.spawn(function()
-							local parts = {}
-							for _, d in pairs(luckyRot:GetDescendants()) do
-								if d:IsA("BasePart") then table.insert(parts, d) end
-							end
-							local flip = false
-							while luckyRot and luckyRot.Parent do
-								flip = not flip
-								local col = flip and Color3.new(1, 1, 1) or Color3.new(0, 0, 0)
-								for _, p in pairs(parts) do
-									if p and p.Parent then p.Color = col end
-								end
-								task.wait(0.5)
-							end
-						end)
-					elseif visualData.animated == "radioactive" then
-						-- Radioactive animation
-						task.spawn(function()
-							local parts = {}
-							for _, d in pairs(luckyRot:GetDescendants()) do
-								if d:IsA("BasePart") then table.insert(parts, d) end
-							end
-							local t = 0
-							while luckyRot and luckyRot.Parent do
-								t += 0.08
-								local brightness = 0.5 + 0.5 * math.sin(t)
-								local g = math.floor(150 + 105 * brightness)
-								local col = Color3.fromRGB(0, g, 0)
-								for _, p in pairs(parts) do
-									if p and p.Parent then p.Color = col end
-								end
-								task.wait(0.05)
-							end
-						end)
-					end
-
-					-- ==========================================
-					-- [NEW] 2.5 UPDATE THE OVERHEAD BILLBOARD DYNAMICALLY
-					-- ==========================================
-					local statsGUI = luckyRot:FindFirstChild("StatsGUI")
-					if statsGUI and not statsGUI:FindFirstChild("MutationLabel") then
-						local mutationLabel = Instance.new("TextLabel")
-						mutationLabel.Name = "MutationLabel"
-						mutationLabel.Size = UDim2.new(1, 0, 0.2, 0)
-						mutationLabel.BackgroundTransparency = 1
-						mutationLabel.Font = Enum.Font.SourceSansBold
-						mutationLabel.TextScaled = true
-
-						-- Use the same format as permanent mutations
-						mutationLabel.Text = "? " .. data.mutation .. " ?"
-
-						-- Get color from MUTATION_COLORS table
-					
-						local mutColor = Color3.new(1, 1, 1)
-						local mc = MUTATION_COLORS[data.mutation]
-
-						-- Only apply the color if it is an actual Color3 (ignores strings like "Rainbow" and "YinYang")
-						if mc and typeof(mc) == "Color3" then
-							mutationLabel.TextColor3 = mc
-						end
-
-						mutationLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-						mutationLabel.TextStrokeTransparency = 0
-						mutationLabel.LayoutOrder = 2
-
-						local constraint = Instance.new("UITextSizeConstraint")
-						constraint.MaxTextSize = 35
-						constraint.MinTextSize = 2
-						constraint.Parent = mutationLabel
-
-						-- Parent it to the main billboard so the UIListLayout organizes it instantly
-						mutationLabel.Parent = statsGUI
-
-						-- Apply rainbow animation if needed
-						if MUTATION_COLORS[data.mutation] == "Rainbow" then
-							task.spawn(function()
-								local hue = 0
-								while mutationLabel and mutationLabel.Parent do
-									hue = (hue + 0.01) % 1
-									mutationLabel.TextColor3 = Color3.fromHSV(hue, 1, 1)
-									task.wait(0.05)
-								end
-							end)
-						elseif MUTATION_COLORS[data.mutation] == "YinYang" then
-							-- Alternate the label too
-							task.spawn(function()
-								local flip = false
-								while mutationLabel and mutationLabel.Parent do
-									flip = not flip
-									mutationLabel.TextColor3 = flip and Color3.new(1,1,1) or Color3.new(0,0,0)
-									task.wait(0.5)
-								end
-							end)
-						end
-					end
-
-					-- 3. Fire the GUI announcement to all players
 					if announceRemote then
-						announceRemote:FireAllClients(luckyRot.Name, data.mutation, data.color)
+						announceRemote:FireAllClients(luckyRot.Name, newLimitedMutation, data.color)
 					end
 				end
 			end
 		end)
 	end
 end
-
 local forceWeatherEvent = Remotes:WaitForChild("ForceWeather")
 forceWeatherEvent.OnServerEvent:Connect(function(player, weatherName)
 	if not isDeveloper(player) then return end
@@ -282,10 +303,10 @@ end)
 
 
 task.spawn(function()
-	print("??? Weather system started!")
+	print("🌤️ Weather system started!")
 
 	setWeather("Clear", CLEAR_DURATION)
-	task.wait(CLEAR_DURATION)  -- was hardcoded to 30 � now uses your module value
+	task.wait(CLEAR_DURATION)  -- was hardcoded to 30 — now uses your module value
 
 	while true do
 		local nextEvent = getNextEvent()
@@ -299,4 +320,4 @@ end)
 
 
 
-print("? WeatherController loaded.")
+print("✅ WeatherController loaded.")
