@@ -4,6 +4,7 @@ print("?? BrainrotSlotSystem starting...")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
+local MutationHandler = require(ReplicatedStorage:WaitForChild("MutationHandler"))
 
 -- Validate tools against this folder
 local BrainrotPackFolder = ReplicatedStorage:WaitForChild("Brainrot pack1", 10)
@@ -16,7 +17,7 @@ local economyevent = game.ReplicatedStorage.RemoteEvents.EconomyEvent
 -- ==========================================================
 local BASES_FOLDER_NAME = "BrainrotBases"
 local TweenService = game:GetService("TweenService")
--- Rarity colours — same as spawning system
+-- Rarity colours  same as spawning system
 local RARITY_COLORS = {
 	["Common"]       = Color3.fromRGB(0, 255, 0),
 	["Rare"]         = Color3.fromRGB(0, 100, 255),
@@ -28,35 +29,15 @@ local RARITY_COLORS = {
 	["OG"]           = "Split",
 }
 
--- Mutation colors (matches spawning system)
-local MUTATION_COLORS = {
-	["Gold"]        = Color3.fromRGB(255, 215, 0),
-	["Diamond"]     = Color3.fromRGB(185, 242, 255),
-	["Rainbow"]     = "Rainbow",
-	-- Limited (weather-gated)
-	["Bloodrot"]    = Color3.fromRGB(100, 0, 0),
-	["Candy"]       = Color3.fromRGB(255, 105, 180),
-	["Lava"]        = Color3.fromRGB(255, 80, 0),
-	["Galaxy"]      = Color3.fromRGB(138, 43, 226),
-	["Yin-Yang"]    = "YinYang",
-	["Radioactive"] = Color3.fromRGB(0, 255, 50),
-}
+-- Mutation colors/multipliers (centralized in MutationHandler)
+local MUTATION_COLORS = {}
+local MUTATION_MULTIPLIERS = {}
+for mutationName, definition in pairs(MutationHandler.MUTATIONS) do
+	MUTATION_COLORS[mutationName] = definition.color
+	MUTATION_MULTIPLIERS[mutationName] = definition.multiplier
+end
 
--- Mutation multipliers for income (matches spawning system)
-local MUTATION_MULTIPLIERS = {
-	["Gold"]        = 1.25,
-	["Diamond"]     = 1.5,
-	["Rainbow"]     = 10,
-	-- Limited
-	["Bloodrot"]    = 2.0,
-	["Candy"]       = 4.0,
-	["Lava"]        = 6.0,
-	["Galaxy"]      = 7.0,
-	["Yin-Yang"]    = 7.5,
-	["Radioactive"] = 8.5,
-}
-
--- Income per second keyed by exact tool name (codev's table — most complete)
+-- Income per second keyed by exact tool name (codev's table  most complete)
 local BRAINROT_INCOME = {
 	-- COMMON
 	["Noobini Pizzanini"] = 1,
@@ -406,8 +387,8 @@ end
 
 -- ==========================================================
 -- SHARED STATE
--- slotData[slot]      – income tracking per occupied slot
--- incomeLabels[slot]  – direct reference to the TextLabel on that slot's
+-- slotData[slot]       income tracking per occupied slot
+-- incomeLabels[slot]   direct reference to the TextLabel on that slot's
 --                        CollectTrigger billboard (created during the scan,
 --                        before any brainrot is placed, so we never have to
 --                        walk the instance tree again)
@@ -752,7 +733,7 @@ local function getEquippedBrainrot(player)
 	return nil
 end
 
--- PLACE  —  moves the tool into the slot (no clone, no destroy)
+-- PLACE    moves the tool into the slot (no clone, no destroy)
 -- Helper to get Rebirths (Place this above the main function if you haven't already)
 local function getRebirthMultiplier(player)
 	local leaderstats = player:FindFirstChild("leaderstats")
@@ -1076,7 +1057,7 @@ collectIncomeEvent.OnServerEvent:Connect(function(player, slot)
 end)
 
 -- ==========================================================
--- SCAN  —  wire up every CollectTrigger & ProximityPrompt once at startup
+-- SCAN    wire up every CollectTrigger & ProximityPrompt once at startup
 -- ==========================================================
 print("?? Scanning BrainrotBases...")
 local basesFound, slotsFound = 0, 0
@@ -1094,7 +1075,7 @@ for _, base in pairs(BASES_FOLDER:GetChildren()) do
 		local slot = child
 		print("   ?? Slot:", slot.Name)
 
-		-- 1. CollectTrigger  —  create billboard + touch handler
+		-- 1. CollectTrigger    create billboard + touch handler
 		local collectTrigger = slot:FindFirstChild("CollectTrigger")
 		if collectTrigger then
 
@@ -1124,7 +1105,7 @@ for _, base in pairs(BASES_FOLDER:GetChildren()) do
 		else
 			print("      ? No CollectTrigger")
 		end
-		-- 2. ProximityPrompt  —  check slot directly, then one level deeper
+		-- 2. ProximityPrompt    check slot directly, then one level deeper
 		local placePrompt = slot:FindFirstChild("PlacePrompt")
 		if not placePrompt then
 			for _, part in pairs(slot:GetChildren()) do
@@ -1145,10 +1126,10 @@ for _, base in pairs(BASES_FOLDER:GetChildren()) do
 	end
 end
 
-print("?? Scan done —", basesFound, "bases,", slotsFound, "slots")
+print("?? Scan done ", basesFound, "bases,", slotsFound, "slots")
 
 -- ==========================================================
--- UPDATE LOOP  —  accumulate income & refresh billboards every second
+-- UPDATE LOOP    accumulate income & refresh billboards every second
 -- ==========================================================
 task.spawn(function()
     while true do
@@ -1271,7 +1252,7 @@ print("? BrainrotSlotSystem fully loaded with mutation support!")
 
 
 -- ==========================================================
--- UPDATE LOOP — accumulate income & refresh billboards every second
+-- UPDATE LOOP  accumulate income & refresh billboards every second
 -- ==========================================================
 task.spawn(function()
 	while true do

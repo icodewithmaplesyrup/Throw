@@ -2,6 +2,7 @@
 -- Manages weather states that enable Limited mutations during events
 
 local WeatherSystem = {}
+local MutationHandler = require(game.ReplicatedStorage:WaitForChild("MutationHandler"))
 
 -- ============================================================
 --  WEATHER DEFINITIONS
@@ -34,35 +35,35 @@ WeatherSystem.WEATHER_TYPES = {
 	["Candyland"] = {
 		displayName   = "?? Candy Rain",
 		mutation      = "Candy",
-		limitedChance = 150,        -- 2.5% — rarer because 4x mult
+		limitedChance = 150,        -- 2.5%  rarer because 4x mult
 		color         = Color3.fromRGB(255, 182, 193),
 		description   = "Sweet showers bring Candy mutations!",
 	},
 	["Volcanic"] = {
 		displayName   = "?? Volcanic Eruption",
 		mutation      = "Lava",
-		limitedChance = 150,        -- ~1.8% — 6x mult
+		limitedChance = 150,        -- ~1.8%  6x mult
 		color         = Color3.fromRGB(255, 69, 0),
 		description   = "Scorching heat brings Lava mutations!",
 	},
 	["Galactic"] = {
 		displayName   = "?? Galactic Storm",
 		mutation      = "Galaxy",
-		limitedChance = 150,        -- ~1.5% — 7x mult
+		limitedChance = 150,        -- ~1.5%  7x mult
 		color         = Color3.fromRGB(75, 0, 130),
 		description   = "Cosmic energy brings Galaxy mutations!",
 	},
 	["YinYang"] = {
 		displayName   = "?? Balance Shift",
 		mutation      = "Yin-Yang",
-		limitedChance = 150,        -- ~1.2% — 7.5x mult
+		limitedChance = 150,        -- ~1.2%  7.5x mult
 		color         = Color3.fromRGB(50, 50, 50),
 		description   = "Reality splits, bringing Yin-Yang mutations!",
 	},
 	["Radioactive"] = {
 		displayName   = "?? Toxic Fallout",
 		mutation      = "Radioactive",
-		limitedChance = 150,         -- 0.8% — 8.5x mult (near-Rainbow tier)
+		limitedChance = 150,         -- 0.8%  8.5x mult (near-Rainbow tier)
 		color         = Color3.fromRGB(0, 255, 50),
 		description   = "Toxic rain brings Radioactive mutations!",
 	},
@@ -99,15 +100,12 @@ WeatherSystem.CLEAR_DURATION  = 15    -- gap between events
 -- ============================================================
 --  LIMITED MUTATION MULTIPLIERS
 -- ============================================================
-WeatherSystem.LIMITED_MULTIPLIERS = {
-	["Bloodrot"]    = 2.0,
-	["Candy"]       = 4.0,
-	["Lava"]        = 6.0,
-	["Galaxy"]      = 7.0,
-	["Yin-Yang"]    = 7.5,
-	["Radioactive"] = 8.5,
-	["Wet"] = 1.5
-}
+WeatherSystem.LIMITED_MULTIPLIERS = {}
+for mutationName, definition in pairs(MutationHandler.MUTATIONS) do
+	if definition.limited then
+		WeatherSystem.LIMITED_MULTIPLIERS[mutationName] = definition.multiplier
+	end
+end
 
 -- ============================================================
 --  LIMITED MUTATION VISUALS

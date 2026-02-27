@@ -32,6 +32,7 @@ local TweenService      = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local WeatherSystem = require(ReplicatedStorage:WaitForChild("WeatherSystem"))
+local MutationHandler = require(ReplicatedStorage:WaitForChild("MutationHandler"))
 
 -- ================================================================
 --  CONFIG
@@ -152,22 +153,18 @@ local BRAINROT_INCOME = {
 }
 
 -- ================================================================
---  MUTATION MULTIPLIERS  (additive: Lava 8 + Candy 4 = 12x total)
+--  MUTATION MULTIPLIERS (centralized in MutationHandler)
 -- ================================================================
-local MUTATION_MULTIPLIERS = {
-	["Gold"]=1.25, ["Diamond"]=1.50, ["Rainbow"]=10.0,
-	["Bloodrot"]=2.0, ["Candy"]=4.0, ["Lava"]=6.0,
-	["Galaxy"]=7.0, ["Yin-Yang"]=7.5, ["Radioactive"]=8.5, ["Wet"]=1.5,
-}
 
 -- Additive sum so Lava(6) + Candy(4) = 10x, not 24x.
 -- A brainrot with no mutations has 1x base; we add the mutation bonuses on top.
 local function getTotalMultiplier(mutList)
 	local bonus = 0
 	for _, name in ipairs(mutList) do
-		bonus = bonus + (MUTATION_MULTIPLIERS[name] or 0)
+		local def = MutationHandler.getDefinition(name)
+		bonus = bonus + (def and def.multiplier or 0)
 	end
-	return 1 + bonus  -- base 1x + all stacked bonuses
+	return 1 + bonus
 end
 
 -- ================================================================

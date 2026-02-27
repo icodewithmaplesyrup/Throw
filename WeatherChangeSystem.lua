@@ -2,36 +2,16 @@ local Remotes             = game.ReplicatedStorage:WaitForChild("RemoteEvents")
 local weatherChangedEvent = Remotes:WaitForChild("WeatherChanged")
 local getWeatherFunc      = Remotes:WaitForChild("GetCurrentWeather")
 local WeatherSystem       = require(game.ReplicatedStorage:WaitForChild("WeatherSystem"))
+local MutationHandler     = require(game.ReplicatedStorage:WaitForChild("MutationHandler"))
 local rainEvent           = Remotes:WaitForChild("StartRain") -- Fixed capitalization to match standard naming
 local RunService          = game:GetService("RunService")
 
--- Mutation colors (must match Spawning System)
-local MUTATION_COLORS = {
-	["Gold"]        = Color3.fromRGB(255, 215, 0),
-	["Diamond"]     = Color3.fromRGB(185, 242, 255),
-	["Rainbow"]     = "Rainbow",
-	["Bloodrot"]    = Color3.fromRGB(100, 0, 0),
-	["Candy"]       = Color3.fromRGB(255, 105, 180),
-	["Lava"]        = Color3.fromRGB(255, 80, 0),
-	["Galaxy"]      = Color3.fromRGB(138, 43, 226),
-	["Yin-Yang"]    = "YinYang",
-	["Radioactive"] = Color3.fromRGB(0, 255, 50),
-	["Wet"] = Color3.fromRGB(84, 130, 255)
-}
-
--- Mutation multipliers (must match Spawning System)
-local MUTATION_MULTIPLIERS = {
-	["Gold"]        = 1.25,
-	["Diamond"]     = 1.50,
-	["Rainbow"]     = 10.0,
-	["Bloodrot"]    = 2.0,
-	["Candy"]       = 4.0,
-	["Lava"]        = 6.0,
-	["Galaxy"]      = 7.0,
-	["Yin-Yang"]    = 7.5,
-	["Radioactive"] = 8.5,
-	["Wet"] = 1.5
-}
+local MUTATION_COLORS = {}
+local MUTATION_MULTIPLIERS = {}
+for mutationName, definition in pairs(MutationHandler.MUTATIONS) do
+	MUTATION_COLORS[mutationName] = definition.color
+	MUTATION_MULTIPLIERS[mutationName] = definition.multiplier
+end
 
 -- Ensure WeatherSystem is fully loaded before accessing its properties
 local EVENT_DURATION = WeatherSystem.EVENT_DURATION or 15
@@ -285,7 +265,7 @@ task.spawn(function()
 	print("??? Weather system started!")
 
 	setWeather("Clear", CLEAR_DURATION)
-	task.wait(CLEAR_DURATION)  -- was hardcoded to 30 — now uses your module value
+	task.wait(CLEAR_DURATION)  -- was hardcoded to 30  now uses your module value
 
 	while true do
 		local nextEvent = getNextEvent()

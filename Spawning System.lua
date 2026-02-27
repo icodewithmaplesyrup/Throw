@@ -6,6 +6,7 @@ local PhysicsService = game:GetService("PhysicsService") -- ADDED
 local brainrotsfolder = replicatedstorage:FindFirstChild("Brainrot pack1") or replicatedstorage:WaitForChild("Brainrot pack1")
 local brainrots = brainrotsfolder:GetChildren()
 local WeatherSystem = require(game.ReplicatedStorage:WaitForChild("WeatherSystem"))
+local MutationHandler = require(game.ReplicatedStorage:WaitForChild("MutationHandler"))
 
 -- Wait for collision groups to be set up
 repeat task.wait(0.1) until pcall(function() 
@@ -72,50 +73,12 @@ local RARITY_COLORS = {
 	["OG"] = "Split",
 }
 
-local MUTATION_COLORS = {
-	-- Permanent
-	["Gold"]        = Color3.fromRGB(255, 215, 0),
-	["Diamond"]     = Color3.fromRGB(185, 242, 255),
-	["Rainbow"]     = "Rainbow",
-	-- Limited (weather-gated)
-	["Bloodrot"]    = Color3.fromRGB(100, 0, 0),
-	["Candy"]       = Color3.fromRGB(255, 105, 180),
-	["Lava"]        = Color3.fromRGB(255, 80, 0),
-	["Galaxy"]      = Color3.fromRGB(138, 43, 226),
-	["Yin-Yang"]    = "YinYang",
-	["Radioactive"] = Color3.fromRGB(0, 255, 50),
-	["Wet"] = Color3.fromRGB(84, 130, 255)
-}
-
-local MUTATION_RATES = {
-	-- Permanent mutations — always in the pool
-	["Rainbow"]  = 5,
-	["Diamond"]  = 102,
-	["Gold"]     = 250,
-	-- Limited mutations — 0 base rate; boosted by weather system
-	["Bloodrot"]    = 0,
-	["Candy"]       = 0,
-	["Lava"]        = 0,
-	["Galaxy"]      = 0,
-	["Yin-Yang"]    = 0,
-	["Radioactive"] = 0,
-	["Wet"] = 0
-}
-
-local MUTATION_MULTIPLIERS = {
-	-- Permanent
-	["Gold"]        = 1.25,
-	["Diamond"]     = 1.50,
-	["Rainbow"]     = 10.0,
-	-- Limited
-	["Bloodrot"]    = 2.0,
-	["Candy"]       = 4.0,
-	["Lava"]        = 6.0,
-	["Galaxy"]      = 7.0,
-	["Yin-Yang"]    = 7.5,
-	["Radioactive"] = 8.5,
-	["Wet"] = 1.5
-}
+local MUTATION_COLORS = {}
+local MUTATION_MULTIPLIERS = {}
+for mutationName, definition in pairs(MutationHandler.MUTATIONS) do
+	MUTATION_COLORS[mutationName] = definition.color
+	MUTATION_MULTIPLIERS[mutationName] = definition.multiplier
+end
 
 local RARITY_SPEEDS = {
 	["Common"] = 24, 
@@ -136,15 +99,7 @@ local function getValidSpawnPosition()
 end
 
 local function getMutation()
-	local roll = math.random(1, 1000)
-	if roll <= MUTATION_RATES["Rainbow"] then
-		return "Rainbow"
-	elseif roll <= MUTATION_RATES["Rainbow"] + MUTATION_RATES["Diamond"] then
-		return "Diamond"
-	elseif roll <= MUTATION_RATES["Rainbow"] + MUTATION_RATES["Diamond"] + MUTATION_RATES["Gold"] then
-		return "Gold"
-	end
-	return nil
+	return MutationHandler.rollPermanentMutation()
 end
 
 local function animateRainbow(textLabel)
@@ -596,12 +551,16 @@ local function spawnbrainrot()
 
 	if #validbrainrotlist == 0 then return end 
 
-	local brainrot = validbrainrotlist[math.random(1, #validbrainrotlist)]:Clone()
-
+	local baseTemplate = validbrainrotlist[math.random(1, #validbrainrotlist)]
 	local mutation = getMutation()
+	local selectedTemplate, defaultTemplate = MutationHandler.resolveModelTemplate(replicatedstorage, baseTemplate.Name, mutation)
+	selectedTemplate = selectedTemplate or baseTemplate
+	local brainrot = selectedTemplate:Clone()
+	local usingCustomMutationModel = mutation and defaultTemplate and (selectedTemplate ~= defaultTemplate)
+
 	if mutation then
 		brainrot:SetAttribute("Mutation", mutation)
-		brainrot:SetAttribute("MutationMult",MUTATION_MULTIPLIERS[mutation])
+		brainrot:SetAttribute("MutationMult", MUTATION_MULTIPLIERS[mutation] or 1)
 	end
 
 	local requirement = RARITY_REQUIREMENTS[basicrarity] or 0
@@ -620,7 +579,7 @@ local function spawnbrainrot()
 
 	enableCollisionDetection(brainrot)
 
-	if mutation then
+	if mutation and not usingCustomMutationModel then
 		local limited = WeatherSystem.LIMITED_VISUALS[mutation]
 		if limited then
 			applyLimitedMutationVisuals(brainrot, mutation)
@@ -661,7 +620,10 @@ spawnSpecificEvent.OnServerEvent:Connect(function(player, brainrotName)
 		if brainrot.Name:lower() == brainrotName:lower() then
 			local clone = brainrot:Clone()
 			local mutation = getMutation()
-			if mutation then clone:SetAttribute("Mutation", mutation) end
+			if mutation then
+				clone:SetAttribute("Mutation", mutation)
+				clone:SetAttribute("MutationMult", MUTATION_MULTIPLIERS[mutation] or 1)
+			end
 
 			local rarity = clone:GetAttribute("Rarity") or "Common"
 			local requirement = RARITY_REQUIREMENTS[rarity] or 0
