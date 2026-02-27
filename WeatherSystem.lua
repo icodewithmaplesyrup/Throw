@@ -10,21 +10,21 @@ local WeatherSystem = {}
 -- ============================================================
 WeatherSystem.WEATHER_TYPES = {
 	["Clear"] = {
-		displayName   = "?? Clear Skies",
+		displayName   = "☀️ Clear",
 		mutation      = nil,       -- no limited mutation during clear
 		limitedChance = 0,
 		color         = Color3.fromRGB(135, 206, 235),
 		description   = "Normal spawns.",
 	},
 	["Bloodstorm"] = {
-		displayName   = "?? Bloodstorm",
+		displayName   = "🩸 Bloodstorm",
 		mutation      = "Bloodrot",
 		limitedChance = 150,        -- 4% chance per spawn during event
 		color         = Color3.fromRGB(139, 0, 0),
 		description   = "Dark clouds bring Bloodrot mutations!",
 	},
 	["Rain"] = {
-		displayName   = "??? Rain",
+		displayName   = "🌧️ Rain",
 		mutation      = "Wet",
 		limitedChance = 150,        -- 2% chance per spawn during event
 		color         = Color3.fromRGB(135, 206, 235),
@@ -32,37 +32,37 @@ WeatherSystem.WEATHER_TYPES = {
 	},
 
 	["Candyland"] = {
-		displayName   = "?? Candy Rain",
+		displayName   = "🍬 Candy Rain",
 		mutation      = "Candy",
-		limitedChance = 150,        -- 2.5% � rarer because 4x mult
+		limitedChance = 150,        -- 2.5% — rarer because 4x mult
 		color         = Color3.fromRGB(255, 182, 193),
 		description   = "Sweet showers bring Candy mutations!",
 	},
 	["Volcanic"] = {
-		displayName   = "?? Volcanic Eruption",
+		displayName   = "🌋 Volcanic Eruption",
 		mutation      = "Lava",
-		limitedChance = 150,        -- ~1.8% � 6x mult
+		limitedChance = 150,        -- ~1.8% — 6x mult
 		color         = Color3.fromRGB(255, 69, 0),
 		description   = "Scorching heat brings Lava mutations!",
 	},
 	["Galactic"] = {
-		displayName   = "?? Galactic Storm",
+		displayName   = "🌌 Galactic Storm",
 		mutation      = "Galaxy",
-		limitedChance = 150,        -- ~1.5% � 7x mult
+		limitedChance = 150,        -- ~1.5% — 7x mult
 		color         = Color3.fromRGB(75, 0, 130),
 		description   = "Cosmic energy brings Galaxy mutations!",
 	},
 	["YinYang"] = {
-		displayName   = "?? Balance Shift",
+		displayName   = "☯️ Balance Shift",
 		mutation      = "Yin-Yang",
-		limitedChance = 150,        -- ~1.2% � 7.5x mult
+		limitedChance = 150,        -- ~1.2% — 7.5x mult
 		color         = Color3.fromRGB(50, 50, 50),
 		description   = "Reality splits, bringing Yin-Yang mutations!",
 	},
 	["Radioactive"] = {
-		displayName   = "?? Toxic Fallout",
+		displayName   = "☢️ Toxic Fallout",
 		mutation      = "Radioactive",
-		limitedChance = 150,         -- 0.8% � 8.5x mult (near-Rainbow tier)
+		limitedChance = 150,         -- 0.8% — 8.5x mult (near-Rainbow tier)
 		color         = Color3.fromRGB(0, 255, 50),
 		description   = "Toxic rain brings Radioactive mutations!",
 	},
