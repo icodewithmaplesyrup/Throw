@@ -15,3 +15,33 @@ note export only works on windows as it uses powershell.<br>
 <br>
 <br>
 Wiki will be updated after the first few updates with info on how to implement every script here.
+<br>
+## Atmos by elttob weather integration
+Use **Atmos** as your look-dev tool and this repo as runtime playback.
+
+### Added runtime scripts
+- `ReplicatedStorage/AtmosIntegration.lua`
+- `StarterPlayerScripts/WeatherVisualClient.lua`
+
+### Folder expected from Atmos authoring
+Create `ReplicatedStorage/AtmosWeatherPresets` with one Folder per weather name:
+- `Clear`, `Rain`, `Bloodstorm`, `Candyland`, `Volcanic`, `Galactic`, `YinYang`, `Radioactive`
+
+Inside each weather folder, add optional children (Folder or Configuration) and set Attributes:
+1. `Atmosphere`
+   - `Density`, `Offset`, `Color`, `Decay`, `Glare`, `Haze`
+   - Color attributes can be `Color3` or string: `"R,G,B"`.
+2. `Lighting`
+   - `Brightness`, `ClockTime`, `FogEnd`, `FogColor`, `Ambient`, `OutdoorAmbient`
+3. `Sky`
+   - `SkyboxBk`, `SkyboxDn`, `SkyboxFt`, `SkyboxLf`, `SkyboxRt`, `SkyboxUp`
+   - Optional: `CelestialBodiesShown`, `StarCount`, `SunAngularSize`, `MoonAngularSize`
+
+Optional on weather folder root:
+- `transitionTime`
+
+### Runtime priority
+On weather change:
+1. Uses `AtmosWeatherPresets/<WeatherName>` if it exists (Atmos-authored).
+2. Falls back to `WeatherSystem.ATMOS_PRESETS`.
+3. Falls back to `Clear` preset.

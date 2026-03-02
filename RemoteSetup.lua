@@ -35,6 +35,7 @@ ensureRemoteEvent("SpawnSpecificBrainrot")
 
 -- Weather system remotes
 ensureRemoteEvent("WeatherChanged")
+ensureRemoteEvent("StartRain")
 ensureRemoteFunction("GetCurrentWeather")
 ensureRemoteEvent("ForceWeather")
 
