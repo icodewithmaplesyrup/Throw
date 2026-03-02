@@ -158,6 +158,170 @@ WeatherSystem.LIMITED_VISUALS = {
 	}
 }
 
+
+
+-- ============================================================
+--  CLIENT ENVIRONMENT PRESETS (Atmosphere + Skybox + Lighting)
+--  Used by WeatherVisualClient LocalScript.
+-- ============================================================
+WeatherSystem.ATMOS_PRESETS = {
+	["Clear"] = {
+		transitionTime = 1.25,
+		atmosphere = {
+			Density = 0.22,
+			Offset = 0,
+			Color = Color3.fromRGB(199, 199, 199),
+			Decay = Color3.fromRGB(106, 112, 125),
+			Glare = 0,
+			Haze = 1,
+		},
+		lighting = {
+			Brightness = 2,
+			ClockTime = 14,
+			FogEnd = 100000,
+			Ambient = Color3.fromRGB(128, 128, 128),
+			OutdoorAmbient = Color3.fromRGB(128, 128, 128),
+		},
+	},
+	["Rain"] = {
+		transitionTime = 1.25,
+		atmosphere = {
+			Density = 0.38,
+			Offset = 0,
+			Color = Color3.fromRGB(131, 150, 171),
+			Decay = Color3.fromRGB(53, 61, 76),
+			Glare = 0,
+			Haze = 3.5,
+		},
+		lighting = {
+			Brightness = 1.3,
+			ClockTime = 16,
+			FogEnd = 850,
+			FogColor = Color3.fromRGB(86, 105, 132),
+			Ambient = Color3.fromRGB(95, 99, 114),
+			OutdoorAmbient = Color3.fromRGB(85, 89, 102),
+		},
+	},
+	["Bloodstorm"] = {
+		transitionTime = 1.5,
+		atmosphere = {
+			Density = 0.45,
+			Color = Color3.fromRGB(157, 64, 64),
+			Decay = Color3.fromRGB(56, 9, 9),
+			Haze = 4,
+			Glare = 0,
+		},
+		lighting = {
+			Brightness = 1.1,
+			ClockTime = 18,
+			FogEnd = 700,
+			FogColor = Color3.fromRGB(73, 24, 24),
+			Ambient = Color3.fromRGB(85, 45, 45),
+			OutdoorAmbient = Color3.fromRGB(76, 30, 30),
+		},
+	},
+	["Candyland"] = {
+		transitionTime = 1.25,
+		atmosphere = {
+			Density = 0.28,
+			Color = Color3.fromRGB(255, 189, 224),
+			Decay = Color3.fromRGB(255, 143, 214),
+			Haze = 2,
+			Glare = 0.05,
+		},
+		lighting = {
+			Brightness = 2.2,
+			ClockTime = 13.5,
+			FogEnd = 3000,
+			FogColor = Color3.fromRGB(255, 202, 235),
+			Ambient = Color3.fromRGB(163, 129, 153),
+			OutdoorAmbient = Color3.fromRGB(171, 135, 163),
+		},
+	},
+	["Volcanic"] = {
+		transitionTime = 1.5,
+		atmosphere = {
+			Density = 0.5,
+			Color = Color3.fromRGB(255, 132, 78),
+			Decay = Color3.fromRGB(90, 31, 14),
+			Haze = 4.5,
+			Glare = 0.2,
+		},
+		lighting = {
+			Brightness = 1.5,
+			ClockTime = 19,
+			FogEnd = 600,
+			FogColor = Color3.fromRGB(135, 63, 32),
+			Ambient = Color3.fromRGB(111, 67, 44),
+			OutdoorAmbient = Color3.fromRGB(125, 74, 48),
+		},
+	},
+	["Galactic"] = {
+		transitionTime = 1.5,
+		atmosphere = {
+			Density = 0.35,
+			Color = Color3.fromRGB(136, 116, 255),
+			Decay = Color3.fromRGB(43, 26, 87),
+			Haze = 2.5,
+			Glare = 0.35,
+		},
+		lighting = {
+			Brightness = 1.2,
+			ClockTime = 0,
+			FogEnd = 2500,
+			FogColor = Color3.fromRGB(47, 35, 82),
+			Ambient = Color3.fromRGB(55, 49, 96),
+			OutdoorAmbient = Color3.fromRGB(61, 51, 112),
+		},
+		skybox = {
+			SkyboxBk = "rbxassetid://159454299",
+			SkyboxDn = "rbxassetid://159454296",
+			SkyboxFt = "rbxassetid://159454293",
+			SkyboxLf = "rbxassetid://159454286",
+			SkyboxRt = "rbxassetid://159454300",
+			SkyboxUp = "rbxassetid://159454288",
+			CelestialBodiesShown = false,
+			StarCount = 3000,
+		},
+	},
+	["YinYang"] = {
+		transitionTime = 1.5,
+		atmosphere = {
+			Density = 0.3,
+			Color = Color3.fromRGB(210, 210, 210),
+			Decay = Color3.fromRGB(46, 46, 46),
+			Haze = 2.5,
+			Glare = 0,
+		},
+		lighting = {
+			Brightness = 1.4,
+			ClockTime = 9,
+			FogEnd = 1200,
+			FogColor = Color3.fromRGB(120, 120, 120),
+			Ambient = Color3.fromRGB(96, 96, 96),
+			OutdoorAmbient = Color3.fromRGB(70, 70, 70),
+		},
+	},
+	["Radioactive"] = {
+		transitionTime = 1.5,
+		atmosphere = {
+			Density = 0.42,
+			Color = Color3.fromRGB(129, 255, 84),
+			Decay = Color3.fromRGB(19, 71, 0),
+			Haze = 3.8,
+			Glare = 0.25,
+		},
+		lighting = {
+			Brightness = 1.5,
+			ClockTime = 20,
+			FogEnd = 750,
+			FogColor = Color3.fromRGB(81, 125, 47),
+			Ambient = Color3.fromRGB(75, 105, 66),
+			OutdoorAmbient = Color3.fromRGB(64, 97, 57),
+		},
+	},
+}
+
 -- ============================================================
 --  STATE  (runtime, not saved)
 -- ============================================================
